@@ -1,0 +1,41 @@
+---
+- name: Install mpd packages (DEBIAN)
+  package: 
+    name: '{{ item }}'
+    state: latest
+  with_items:
+  - mpc
+  - mpd
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Install mpd packages (RHEL)
+  package:
+  with_items:
+  - mpc
+  - mpd
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Install fade script commands
+  copy:
+    src: "{{ item }}"
+    dest: /usr/local/bin
+    mode: 0755
+  with_items:
+  - fnext
+  - fpause
+  - fplay
+
+- name: Install mpd configuration file
+  template:
+    src: mpd.conf.j2
+    dest: /etc/mpd.conf
+    owner: "{{ mpd_user }}"
+    group: "{{ mpd_group }}"
+    mode: 0640
+  notify:
+    - restart mpd
+
+- name: Enable mpd service
+  service:
+    name: mpd
+    enabled: yes
